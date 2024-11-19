@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Scribble AI</title>
+  <style>
+    body { width: 300px; padding: 10px; }
+    textarea { width: 100%; margin: 5px 0; }
+    #imagePreview { max-width: 100%; margin: 5px 0; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <h3>Scribble AI</h3>
+  <input type="file" id="imageInput" accept="image/*">
+  <img id="imagePreview" class="hidden">
+  <textarea id="prompt" rows="3" placeholder="Enter your prompt"></textarea>
+  <button id="generate">Generate</button>
+  <div id="result"></div>
+  <script src="popup.js" type="module"></script>
+</body>
+</html>
