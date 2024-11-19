@@ -1,15 +1,16 @@
 import Replicate from 'replicate';
-import { config } from '../config/index.js';
 
 const replicate = new Replicate({
-  auth: config.replicateApiToken
+  auth: process.env.REPLICATE_API_TOKEN
 });
+
+const MODEL_VERSION = "435061a1b5a4c1e26740464bf786efdfa9cb3a3ac488595a2de23e143fdb0117";
 
 export const createPrediction = async (image, prompt) => {
   try {
-    // Create the prediction
+    // Create prediction
     const prediction = await replicate.predictions.create({
-      version: config.modelVersion,
+      version: MODEL_VERSION,
       input: {
         image,
         prompt,
@@ -24,10 +25,11 @@ export const createPrediction = async (image, prompt) => {
       }
     });
 
-    // Poll for the prediction result
+    // Get prediction result
     let result = await replicate.predictions.get(prediction.id);
     
-    while (result.status !== "succeeded" && result.status !== "failed") {
+    // Poll until the prediction is complete
+    while (result.status === "starting" || result.status === "processing") {
       await new Promise(resolve => setTimeout(resolve, 1000));
       result = await replicate.predictions.get(prediction.id);
     }
