@@ -1,32 +1,20 @@
 export const errorHandler = (err, req, res, next) => {
-  console.error('Error:', {
+  console.error('Error details:', {
     message: err.message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
-    status: err.response?.status,
-    details: err.response?.data
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
   });
 
-  // Handle specific API errors
   if (err.response?.status === 401) {
     return res.status(401).json({
       success: false,
-      error: 'Authentication failed with Replicate API',
-      details: 'Please check the API token configuration'
+      error: 'Authentication failed',
+      details: 'Invalid or missing API token'
     });
   }
 
-  if (err.response?.status === 429) {
-    return res.status(429).json({
-      success: false,
-      error: 'Rate limit exceeded',
-      details: 'Please try again later'
-    });
-  }
-
-  // Default error response
   res.status(500).json({
     success: false,
-    error: 'Internal server error',
-    details: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
+    error: 'Failed to process the prediction',
+    details: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
   });
 };

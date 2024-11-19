@@ -3,7 +3,7 @@ import { createPrediction } from '../services/replicate.js';
 
 const router = express.Router();
 
-router.post('/predict', async (req, res) => {
+router.post('/predict', async (req, res, next) => {
   try {
     const { image, prompt } = req.body;
 
@@ -14,24 +14,10 @@ router.post('/predict', async (req, res) => {
       });
     }
 
-    // Validate image format
-    const isValidImageUrl = image.startsWith('http') || image.startsWith('data:image/');
-    if (!isValidImageUrl) {
-      return res.status(400).json({
-        success: false,
-        error: 'Image must be a valid URL or data URL'
-      });
-    }
-
     const result = await createPrediction(image, prompt);
-    res.json(result); // Send the complete result object
+    res.json(result);
   } catch (error) {
-    console.error('Prediction error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to process the prediction',
-      details: error.message
-    });
+    next(error);
   }
 });
 

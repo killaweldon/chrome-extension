@@ -1,24 +1,14 @@
 import Replicate from 'replicate';
 import { config } from '../config/index.js';
 
-// Initialize Replicate with the API token
 const replicate = new Replicate({
-  auth: config.replicateApiToken,
-  userAgent: 'replicate-javascript/0.25.2'
+  auth: config.replicateApiToken
 });
 
-// Log token presence (but not the actual token) for debugging
-console.log('Replicate API Token configured:', !!config.replicateApiToken);
-
 export const createPrediction = async (image, prompt) => {
-  if (!config.replicateApiToken) {
-    throw new Error('Replicate API token is not configured');
-  }
-
   try {
-    // Run the prediction using the simplified API
     const output = await replicate.run(
-      "jagilley/controlnet-scribble:" + config.modelVersion,
+      `${config.modelId}:${config.modelVersion}`,
       {
         input: {
           image,
@@ -27,7 +17,7 @@ export const createPrediction = async (image, prompt) => {
           image_resolution: "512",
           ddim_steps: 20,
           scale: 9,
-          seed: 1,
+          seed: Math.floor(Math.random() * 1000000),
           eta: 0,
           a_prompt: "best quality, extremely detailed",
           n_prompt: "longbody, lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality"
@@ -35,28 +25,16 @@ export const createPrediction = async (image, prompt) => {
       }
     );
 
-    // The output is an array of image URLs, we take the first one
-    if (Array.isArray(output) && output.length > 0) {
-      return {
-        success: true,
-        prediction: output[0],
-        status: 'succeeded'
-      };
+    if (!Array.isArray(output) || output.length === 0) {
+      throw new Error('No output generated from the model');
     }
-    
-    throw new Error('No output generated from the model');
+
+    return {
+      success: true,
+      prediction: output[0]
+    };
   } catch (error) {
-    // Enhanced error logging
-    console.error('Replicate API Error:', {
-      message: error.message,
-      status: error.response?.status,
-      details: error.response?.data
-    });
-    
-    // Rethrow with more specific error message
-    if (error.response?.status === 401) {
-      throw new Error('Invalid or expired API token');
-    }
+    console.error('Replicate service error:', error);
     throw error;
   }
 };
