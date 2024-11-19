@@ -1,13 +1,23 @@
 import Replicate from 'replicate';
+import { config } from '../config/index.js';
 
+// Initialize Replicate with the API token
 const replicate = new Replicate({
-  auth: process.env.REPLICATE_API_TOKEN
+  auth: config.replicateApiToken // Use the token from config
 });
 
+// Log token presence (but not the actual token) for debugging
+console.log('Replicate API Token configured:', !!config.replicateApiToken);
+
 export const createPrediction = async (image, prompt) => {
+  if (!config.replicateApiToken) {
+    throw new Error('Replicate API token is not configured');
+  }
+
   try {
+    // Create the prediction
     const prediction = await replicate.predictions.create({
-      version: "435061a1b5a4c1e26740464bf786efdfa9cb3a3ac488595a2de23e143fdb0117",
+      version: config.modelVersion,
       input: {
         image,
         prompt,
@@ -22,21 +32,25 @@ export const createPrediction = async (image, prompt) => {
       }
     });
 
+    // Wait for the prediction to complete
     const finalPrediction = await replicate.predictions.wait(prediction.id);
     
     if (finalPrediction.status === 'succeeded') {
       return {
         success: true,
         prediction: finalPrediction.output[0],
-        status: finalPrediction.status,
-        created_at: finalPrediction.created_at,
-        completed_at: finalPrediction.completed_at
+        status: finalPrediction.status
       };
     }
     
     throw new Error(finalPrediction.error || 'Prediction failed');
   } catch (error) {
-    console.error('Replicate API Error:', error);
+    // Enhanced error logging
+    console.error('Replicate API Error:', {
+      message: error.message,
+      status: error.response?.status,
+      details: error.response?.data
+    });
     throw error;
   }
 };

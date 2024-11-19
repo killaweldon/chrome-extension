@@ -1,12 +1,17 @@
 export const errorHandler = (err, req, res, next) => {
-  console.error('Error:', err);
+  console.error('Error:', {
+    message: err.message,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+    status: err.response?.status,
+    details: err.response?.data
+  });
 
   // Handle specific API errors
   if (err.response?.status === 401) {
     return res.status(401).json({
       success: false,
-      error: 'Invalid API token',
-      details: 'Please check your Replicate API token'
+      error: 'Authentication failed with Replicate API',
+      details: 'Please check the API token configuration'
     });
   }
 
@@ -21,7 +26,7 @@ export const errorHandler = (err, req, res, next) => {
   // Default error response
   res.status(500).json({
     success: false,
-    error: 'Something went wrong!',
-    details: err.message
+    error: 'Internal server error',
+    details: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
   });
 };
