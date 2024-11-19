@@ -7,6 +7,7 @@ const replicate = new Replicate({
 
 export const createPrediction = async (image, prompt) => {
   try {
+    // Using replicate.run() instead of predictions.create() and wait
     const output = await replicate.run(
       `${config.modelId}:${config.modelVersion}`,
       {
@@ -25,10 +26,12 @@ export const createPrediction = async (image, prompt) => {
       }
     );
 
+    // The output will be an array of image URLs
     if (!Array.isArray(output) || output.length === 0) {
       throw new Error('No output generated from the model');
     }
 
+    // Return the first generated image URL
     return {
       success: true,
       prediction: output[0]
