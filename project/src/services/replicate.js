@@ -7,7 +7,7 @@ const replicate = new Replicate({
 
 export const createPrediction = async (image, prompt) => {
   try {
-    // Create a prediction
+    // Create the prediction
     const prediction = await replicate.predictions.create({
       version: config.modelVersion,
       input: {
@@ -27,13 +27,13 @@ export const createPrediction = async (image, prompt) => {
     // Poll for the prediction result
     let result = await replicate.predictions.get(prediction.id);
     
-    while (result.status !== 'succeeded' && result.status !== 'failed') {
+    while (result.status !== "succeeded" && result.status !== "failed") {
       await new Promise(resolve => setTimeout(resolve, 1000));
       result = await replicate.predictions.get(prediction.id);
     }
 
-    if (result.status === 'failed') {
-      throw new Error(result.error || 'Prediction failed');
+    if (result.status === "failed") {
+      throw new Error(result.error || 'Model prediction failed');
     }
 
     if (!result.output || !Array.isArray(result.output) || result.output.length === 0) {
