@@ -3,7 +3,7 @@ import { config } from '../config/index.js';
 
 // Initialize Replicate with the API token
 const replicate = new Replicate({
-  auth: config.replicateApiToken // Use the token from config
+  auth: config.replicateApiToken
 });
 
 // Log token presence (but not the actual token) for debugging
@@ -15,35 +15,35 @@ export const createPrediction = async (image, prompt) => {
   }
 
   try {
-    // Create the prediction
-    const prediction = await replicate.predictions.create({
-      version: config.modelVersion,
-      input: {
-        image,
-        prompt,
-        num_samples: "1",
-        image_resolution: "512",
-        ddim_steps: 20,
-        scale: 9,
-        seed: 1,
-        eta: 0,
-        a_prompt: "best quality, extremely detailed",
-        n_prompt: "longbody, lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality"
+    // Run the prediction using the simplified API
+    const output = await replicate.run(
+      "jagilley/controlnet-scribble:" + config.modelVersion,
+      {
+        input: {
+          image,
+          prompt,
+          num_samples: "1",
+          image_resolution: "512",
+          ddim_steps: 20,
+          scale: 9,
+          seed: 1,
+          eta: 0,
+          a_prompt: "best quality, extremely detailed",
+          n_prompt: "longbody, lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality"
+        }
       }
-    });
+    );
 
-    // Wait for the prediction to complete
-    const finalPrediction = await replicate.predictions.wait(prediction.id);
-    
-    if (finalPrediction.status === 'succeeded') {
+    // The output is an array of image URLs, we take the first one
+    if (output && output.length > 0) {
       return {
         success: true,
-        prediction: finalPrediction.output[0],
-        status: finalPrediction.status
+        prediction: output[0],
+        status: 'succeeded'
       };
     }
     
-    throw new Error(finalPrediction.error || 'Prediction failed');
+    throw new Error('No output generated from the model');
   } catch (error) {
     // Enhanced error logging
     console.error('Replicate API Error:', {
