@@ -1,8 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 import predictRouter from './src/routes/predict.js';
 import { errorHandler } from './src/middleware/errorHandler.js';
 
@@ -20,6 +18,9 @@ app.use(express.json({ limit: '50mb' }));
 app.get('/healthz', (req, res) => {
   res.status(200).send('OK');
 });
+
+// Log environment check
+console.log('API Token exists:', !!process.env.REPLICATE_API_TOKEN);
 
 // Routes
 app.use('/api', predictRouter);
