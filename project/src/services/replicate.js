@@ -3,7 +3,8 @@ import { config } from '../config/index.js';
 
 // Initialize Replicate with the API token
 const replicate = new Replicate({
-  auth: config.replicateApiToken
+  auth: config.replicateApiToken,
+  userAgent: 'replicate-javascript/0.25.2'
 });
 
 // Log token presence (but not the actual token) for debugging
@@ -35,7 +36,7 @@ export const createPrediction = async (image, prompt) => {
     );
 
     // The output is an array of image URLs, we take the first one
-    if (output && output.length > 0) {
+    if (Array.isArray(output) && output.length > 0) {
       return {
         success: true,
         prediction: output[0],
@@ -51,6 +52,11 @@ export const createPrediction = async (image, prompt) => {
       status: error.response?.status,
       details: error.response?.data
     });
+    
+    // Rethrow with more specific error message
+    if (error.response?.status === 401) {
+      throw new Error('Invalid or expired API token');
+    }
     throw error;
   }
 };

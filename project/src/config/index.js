@@ -6,8 +6,9 @@ dotenv.config();
 // Validate API token format
 const validateApiToken = (token) => {
   if (!token) return null;
-  // Remove any 'REPLICATE_API_TOKEN=' prefix if present
-  return token.replace('REPLICATE_API_TOKEN=', '');
+  // Extract just the token value, removing any prefix
+  const tokenMatch = token.match(/^(?:r8_|REPLICATE_API_TOKEN=)?(.*)/);
+  return tokenMatch ? tokenMatch[1] : token;
 };
 
 export const config = {
